@@ -31,7 +31,28 @@
 (defn apply-state
   "Given a state snapshot, realize the virual dom tree."
   [node state]
-  node)
+  (when node
+    (cond
+      (primitive? node)
+      node
+
+      (fn? node) (apply-state (node state) state)
+
+      (map? node)
+      (let [{:keys [tag children]} node]
+        (cond-> {:tag tag}
+
+          (not (empty? children))
+          (assoc :children (->> children
+                                (map #(apply-state % state))
+                                flatten
+                                vec))))
+
+      (sequential? node)
+      (map #(apply-state % state) node)
+
+      :default
+      node)))
 
 (defn update-elements
   "Given a the old (left) and new (right) tree, update the elements in the dom.

@@ -11,13 +11,13 @@
     (h :p "My state of interest: " (:content state))))
 
 (v/attach!
-  (let [state @app-state]
+  (fn [state]
     (h :div {:class "container"}
            (h :h1 nil "Hello, Virtua")
            (h :p nil
                   "Hello there, we're using pure CLJS virtual dom
                   to render this page.")
-           (a-component state)
+           a-component
            (h :ul nil
                   (map (fn [i] (h :li nil i)) (:list state)))))
   app-state
