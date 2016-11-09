@@ -54,10 +54,35 @@
       :default
       node)))
 
+(defn- changed? [left right]
+  (and left right
+    (or (not= (:tag left) (:tag right))
+        (and (primitive? left) (not= left right)))))
+
 (defn update-elements
   "Given a the old (left) and new (right) tree, update the elements in the dom.
   `index` is the current element's index relative to its siblings."
-  [el left right index])
+  [el left right index]
+  (cond
+    (and (not left) right)
+    (dom/insert-at el (create-element right) index)
+
+    (and left (not right))
+    (dom/remove (dom/child-at el index))
+
+    (changed? left right)
+    (let [child (dom/child-at el index)]
+      (dom/remove child)
+      (dom/insert-at el (create-element right) index))
+
+    (:children right)
+    (doseq [i (range (max (count (:children left))
+                          (count (:children right))))]
+      (update-elements
+        (dom/child-at el index)
+        (get-in left [:children i])
+        (get-in right [:children i])
+        i))))
 
 (defn h
   "Creates a virtual dom representation of an element"
