@@ -3,13 +3,35 @@
             [clojure.string :refer [join]]
             [clojure.data :refer [diff]]))
 
+(defn primitive? [x]
+  (or (string? x)
+      (number? x)
+      (= (type x) (type true))))
+
 (defn create-element
   "Given a virtual dom tree node, create a real dom element."
-  [node])
+  [node]
+  (when node
+    (cond
+
+      (primitive? node)
+      (dom/create-text (str node))
+
+      (map? node)
+      (let [{:keys [tag children]} node
+            ; NOTE: Ww're just going to ignore our attributes
+            el (dom/create (name tag))]
+        (->> children
+             (map create-element)
+             (apply dom/append el)))
+
+      :default
+      (dom/create-text (str node)))))
 
 (defn apply-state
   "Given a state snapshot, realize the virual dom tree."
-  [node state])
+  [node state]
+  node)
 
 (defn update-elements
   "Given a the old (left) and new (right) tree, update the elements in the dom.
